@@ -4,13 +4,16 @@ from ccdc.entry import Entry
 from ccdc.crystal import CellAngles, CellLengths
 from ccdc.search import TextNumericSearch, ReducedCellSearch
 import os, sys, hashlib, re, json
+#######
+config_file_path = './config.json'
+json_database_path = '../database_files/inhouse.json'
+csdsql_database_path = '../database_files/inhouse.csdsql'
+json_search_results_path = '../database_files/search_results.json'
+#######
 
-
-with open('./config.json', 'r') as filehandle:
+with open(config_file_path, 'r') as filehandle:
     data = filehandle.read()
 DATABASE_PATH =  json.loads(data)['database']
-
-
 
 
 def get_csd_entries_by_author(author):
@@ -166,10 +169,12 @@ def parse_cifs(list_of_paths):
         for item in search_terms:
             pattern = re.compile(search_terms[item])
             result = pattern.search(data)
-            if result == None: 
-                entry[item] = ''
-            else:
-                entry[item] = pattern.search(data).group(2)
+            try:
+                if result == None: 
+                    entry[item] = ''
+                else:
+                    entry[item] = pattern.search(data).group(2)
+            except: entry[item] = ''
         parsed.append(entry)
     return parsed
 
@@ -196,10 +201,10 @@ def cleanup_parsed_cifs(cif_dict):
         out.append(cif)
     return out
 
-def parsed_cifs_2_json(parsed_cifs, filename='./database_files/inhouse.json'):
+def parsed_cifs_2_json(parsed_cifs, filename=json_database_path):
     '''
     input "parsed cifs" as a list of dictionaries
-    output a json file (default output filename is ./database_files/inhouse.json)
+    output a json file (default output filename is json_database_path)
     '''
     parsed_cifs = json.dumps(parsed_cifs)
     with open(filename, 'w') as writer:
@@ -233,7 +238,7 @@ def cif_2_entry(filepath):
     return new_entry
 
 
-def entries_2_database(entry_list, output_file='./database_files/inhouse.csdsql'): #broken
+def entries_2_database(entry_list, output_file=csdsql_database_path): #broken
     '''
     input a list of entry objects and ouput a csdsql file
     '''
@@ -262,7 +267,7 @@ def hash_file(path):
 
 def my_reduced_cell_search(user_a, user_b, user_c, 
                             user_alpha, user_beta, user_gamma, user_centring, 
-                            database='./database_files/inhouse.csdsql', filename='./database_files/search_results.json',
+                            database=csdsql_database_path, filename=json_search_results_path,
                             length_tolerance = 1.5, angle_tolerance=2.0):
     # lattice_centring_dict = {
     #                 'P':'primitive','C':'C-centred','F':'F-centred','I':'I-centred',
@@ -278,7 +283,7 @@ def my_reduced_cell_search(user_a, user_b, user_c,
     hits = searcher.search(database=database) #/inhouse.csdsql
 
     #load in the cif database as a list of dictionaries
-    with open('./database_files/inhouse.json', 'r') as filehandle:
+    with open(json_database_path, 'r') as filehandle:
         data = filehandle.read()
     data = json.loads(data)
 
@@ -291,15 +296,16 @@ def my_reduced_cell_search(user_a, user_b, user_c,
             elif i['_database_code_CSD'] == h.identifier:
                 print h.identifier
                 search_results.append(i)
-    parsed_cifs_2_json(search_results, filename='./database_files/search_results.json')
+    parsed_cifs_2_json(search_results, filename='../database_files/search_results.json')
 
     print(str(len(hits)) + ' hits found.')
 
 
 if __name__ == '__main__':
 
-    # update_databases()
-    my_reduced_cell_search(24.1, 16.7, 8.5, 90, 90, 90, 'primitive', length_tolerance=50, angle_tolerance=25)
+    update_databases()
+    # my_reduced_cell_search(24.1, 16.7, 8.5, 90, 90, 90, 'primitive', length_tolerance=50, angle_tolerance=25)
+
 
 
 

@@ -30,12 +30,12 @@ colors={
 #######################
 # import the raw data #
 #######################
-with open('./database_files/inhouse.json', 'r') as filehandle:
+with open('../database_files/inhouse.json', 'r') as filehandle:
     data = filehandle.read()
 data = json.loads(data)
 df = json_normalize(data)
 
-with open('./database_files/search_results.json', 'r') as filehandle:
+with open('../database_files/search_results.json', 'r') as filehandle:
     data2 = filehandle.read()
 data2 = json.loads(data2)
 reduced_cell_df = json_normalize(data2)
@@ -268,13 +268,13 @@ def update_output(n_clicks):
         # cifs = structure_database.get_all_cifs()
         # data = structure_database.parse_cifs(cifs)
         # clean_data = structure_database.cleanup_parsed_cifs(data)
-        before = structure_database.hash_file('./database_files/inhouse.json')
+        before = structure_database.hash_file('../database_files/inhouse.json')
         structure_database.update_databases()
-        after = structure_database.hash_file('./database_files/inhouse.json')
+        after = structure_database.hash_file('../database_files/inhouse.json')
         if before == after: 
             return 'No changes made.'
         else:
-            with open('./database_files/inhouse.json', 'r') as filehandle:
+            with open('../database_files/inhouse.json', 'r') as filehandle:
                 data = filehandle.read()
             data = json.loads(data)
             
@@ -295,7 +295,7 @@ def update_graph(column, n_clicks):
         value_cell.append(df[col])
 
     if n_clicks >= 1:
-        with open('./database_files/inhouse.json', 'r') as filehandle:
+        with open('../database_files/inhouse.json', 'r') as filehandle:
             data = filehandle.read()
         data = json.loads(data)
         df_new = json_normalize(data)[value_header]
@@ -326,12 +326,15 @@ def update_reduced_cell(n_clicks, a, b, c, alpha, beta, gamma, centring, angle_t
     else:
         structure_database.my_reduced_cell_search(float(a), float(b), float(c), float(alpha), float(beta), float(gamma), centring, length_tolerance=length_tol, angle_tolerance=angle_tol)
 
-        value_header = ['parent', '_symmetry_space_group_name_H-M', '_symmetry_cell_setting', '_cell_length_a', '_cell_length_b', '_cell_length_c', '_cell_angle_alpha', '_cell_angle_beta', '_cell_angle_gamma', '_symmetry_cell_setting', '_symmetry_space_group_name_H-M', '_audit_creation_date', '_cell_volume', '_database_code_CSD', 'hash', 'path']
+        value_header = ['parent', '_symmetry_space_group_name_H-M', '_symmetry_cell_setting', 
+                        '_cell_length_a', '_cell_length_b', '_cell_length_c', 
+                        '_cell_angle_alpha', '_cell_angle_beta', '_cell_angle_gamma', 
+                        '_audit_creation_date', '_cell_volume', '_database_code_CSD', 'hash', 'path']
         # try:
         #     value_cell = [reduced_cell_df[i] for i in value_header]
         # except: [reduced_cell_df[i] for i in []]
 
-        with open('./database_files/search_results.json', 'r') as filehandle:
+        with open('../database_files/search_results.json', 'r') as filehandle:
             data2 = filehandle.read()
         data2 = json.loads(data2)
         df_2 = json_normalize(data2)
