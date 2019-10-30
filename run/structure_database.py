@@ -10,12 +10,12 @@ config_file_path = './config.json'
 
 with open(config_file_path, 'r') as filehandle:
     data = filehandle.read()
-data = json.loads(data)
-DATABASE_PATH =  data['cif_repository']
-json_database_path = data['json_database_path']
-csdsql_database_path = data['csdsql_database_path']
-json_search_results_path = data['json_search_results_path']
-csv_export_path = data['csv_export_path']
+data = json.loads(data.replace('\\', '\\\\'))
+DATABASE_PATH =  data['cif_repository'].replace('\\', '/')
+json_database_path = data['json_database_path'].replace('\\', '/')
+csdsql_database_path = data['csdsql_database_path'].replace('\\', '/')
+json_search_results_path = data['json_search_results_path'].replace('\\', '/')
+csv_export_path = data['csv_export_path'].replace('\\', '/')
 
 def get_csd_entries_by_author(author):
     '''
@@ -155,14 +155,14 @@ def parse_cifs(list_of_paths):
         }
     parsed = [] #init the output list
     for path in list_of_paths:  #get the data as text and its hash
+        path = path.replace('\\', '/')
         entry = dict()
-        entry['path']=path
+        entry['path']=os.path.normpath(path)
         entry['hash']=hash_file(path)
-        filename_pattern = re.compile(DATABASE_PATH + r'()([^/]*)')
-        entry['parent'] = filename_pattern.search(path).group(2) 
-        #define all the search terms here
+
+        filename_pattern = re.compile(DATABASE_PATH + r'/([^/]*)')
+        entry['parent'] = filename_pattern.search(path).group(1)
         
-       
        #build regex and find first entry for every thing
        #should be robust logic to handle all search terms
         with open(path, 'rt') as filehandle:
@@ -198,7 +198,7 @@ def cleanup_parsed_cifs(cif_dict):
 
         if cif['_symmetry_cell_setting'] == "":
             cif['_symmetry_cell_setting'] = cif['_space_group_crystal_system'].replace('\'', '')
-
+        
         out.append(cif)
     return out
 

@@ -21,12 +21,12 @@ config_file_path = './config.json'
 
 with open(config_file_path, 'r') as filehandle:
     data = filehandle.read()
-data = json.loads(data)
-DATABASE_PATH =  data['cif_repository']
-json_database_path = data['json_database_path']
-csdsql_database_path = data['csdsql_database_path']
-json_search_results_path = data['json_search_results_path']
-csv_export_path = data['csv_export_path']
+data = json.loads(data.replace('\\', '\\\\'))
+DATABASE_PATH =  data['cif_repository'].replace('\\', '/')
+json_database_path = data['json_database_path'].replace('\\', '/')
+csdsql_database_path = data['csdsql_database_path'].replace('\\', '/')
+json_search_results_path = data['json_search_results_path'].replace('\\', '/')
+csv_export_path = data['csv_export_path'].replace('\\', '/')
 
 def get_all_cifs(dirpath=DATABASE_PATH):
     '''
@@ -115,8 +115,9 @@ def parse_cifs(list_of_paths):
         }
     parsed = [] #init the output list
     for path in list_of_paths:  #get the data as text and its hash
+        path = path.replace('\\', '/')
         entry = dict()
-        entry['path']=path
+        entry['path']=os.path.normpath(path)
         entry['hash']=hash_file(path)
         
         entry['parent'] = path[:len(DATABASE_PATH)].split('/')[0]
