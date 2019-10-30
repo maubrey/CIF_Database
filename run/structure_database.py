@@ -162,7 +162,7 @@ def parse_cifs(list_of_paths):
 
         filename_pattern = re.compile(DATABASE_PATH + r'/([^/]*)')
         entry['parent'] = filename_pattern.search(path).group(1)
-        
+        print entry['parent']
        #build regex and find first entry for every thing
        #should be robust logic to handle all search terms
         with open(path, 'rt') as filehandle:
@@ -178,7 +178,6 @@ def parse_cifs(list_of_paths):
             except: entry[item] = ''
         parsed.append(entry)
     return parsed
-
 
 def cleanup_parsed_cifs(cif_dict):
     '''cleans up the formatting of some of the data entries'''

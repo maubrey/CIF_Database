@@ -1,6 +1,5 @@
-{"cif_repository": "/Volumes/HK_Data/CIF_Database/",
+{"cif_repository": "/Users/michael/mnt/hk_data/CIF_Database",
 "python_path/bin/activate": "//Applications/CCDC/Python_API_2019/miniconda/bin/activate",
-"comment":"No Backslashes in file path. Only /.",
 
 "json_database_path": "../database_files/inhouse.json",
 "csdsql_database_path": "../database_files/inhouse.csdsql",

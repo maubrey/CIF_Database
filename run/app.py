@@ -16,6 +16,9 @@ from dash.exceptions import PreventUpdate
 
 
 
+#######
+config_file_path = './config.json'
+#######
 
 
 
@@ -27,15 +30,24 @@ colors={
 }
 
 
+with open(config_file_path, 'r') as filehandle:
+    data = filehandle.read()
+data = json.loads(data.replace('\\', '\\\\'))
+DATABASE_PATH =  data['cif_repository'].replace('\\', '/')
+json_database_path = data['json_database_path'].replace('\\', '/')
+csdsql_database_path = data['csdsql_database_path'].replace('\\', '/')
+json_search_results_path = data['json_search_results_path'].replace('\\', '/')
+csv_export_path = data['csv_export_path'].replace('\\', '/')
+
 #######################
 # import the raw data #
 #######################
-with open('../database_files/inhouse.json', 'r') as filehandle:
+with open(json_database_path, 'r') as filehandle:
     data = filehandle.read()
 data = json.loads(data)
 df = json_normalize(data)
 
-with open('../database_files/search_results.json', 'r') as filehandle:
+with open(json_search_results_path, 'r') as filehandle:
     data2 = filehandle.read()
 data2 = json.loads(data2)
 reduced_cell_df = json_normalize(data2)
@@ -268,13 +280,13 @@ def update_output(n_clicks):
         # cifs = structure_database.get_all_cifs()
         # data = structure_database.parse_cifs(cifs)
         # clean_data = structure_database.cleanup_parsed_cifs(data)
-        before = structure_database.hash_file('../database_files/inhouse.json')
+        before = structure_database.hash_file(json_database_path)
         structure_database.update_databases()
-        after = structure_database.hash_file('../database_files/inhouse.json')
+        after = structure_database.hash_file(json_database_path)
         if before == after: 
             return 'No changes made.'
         else:
-            with open('../database_files/inhouse.json', 'r') as filehandle:
+            with open(json_database_path, 'r') as filehandle:
                 data = filehandle.read()
             data = json.loads(data)
             
@@ -295,7 +307,7 @@ def update_graph(column, n_clicks):
         value_cell.append(df[col])
 
     if n_clicks >= 1:
-        with open('../database_files/inhouse.json', 'r') as filehandle:
+        with open(json_database_path, 'r') as filehandle:
             data = filehandle.read()
         data = json.loads(data)
         df_new = json_normalize(data)[value_header]
@@ -334,7 +346,7 @@ def update_reduced_cell(n_clicks, a, b, c, alpha, beta, gamma, centring, angle_t
         #     value_cell = [reduced_cell_df[i] for i in value_header]
         # except: [reduced_cell_df[i] for i in []]
 
-        with open('../database_files/search_results.json', 'r') as filehandle:
+        with open(json_search_results_path, 'r') as filehandle:
             data2 = filehandle.read()
         data2 = json.loads(data2)
         df_2 = json_normalize(data2)
