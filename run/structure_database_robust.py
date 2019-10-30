@@ -13,10 +13,20 @@ Run as main to
 import os, hashlib, re, json, csv
 import sys
 
+#######
+config_file_path = './config.json'
+#######
 
-with open('./config.json', 'r') as filehandle:
+
+
+with open(config_file_path, 'r') as filehandle:
     data = filehandle.read()
-DATABASE_PATH =  json.loads(data)['database']
+data = json.loads(data)
+DATABASE_PATH =  data['cif_repository']
+json_database_path = data['json_database_path']
+csdsql_database_path = data['csdsql_database_path']
+json_search_results_path = data['json_search_results_path']
+csv_export_path = data['csv_export_path']
 
 def get_all_cifs(dirpath=DATABASE_PATH):
     '''
@@ -150,31 +160,32 @@ def cleanup_parsed_cifs(cif_dict):
         out.append(cif)
     return out
 
-def parsed_cifs_2_json(parsed_cifs, filename='./database_files/inhouse.json'):
+def parsed_cifs_2_json(parsed_cifs, filename=json_database_path):
     '''
     input "parsed cifs" as a list of dictionaries
-    output a json file (default output filename is ./database_files/inhouse.json)
+    output a json file (default output filename is json_database_path)
     '''
     parsed_cifs = json.dumps(parsed_cifs)
     with open(filename, 'w') as writer:
         writer.write(parsed_cifs)
     return parsed_cifs
 
-def json_2_csv(json_file_path='./database_files/inhouse.json'):
+def json_2_csv(json_file_path=json_database_path):
     
     with open(json_file_path, 'rt') as filehandle:
         data = filehandle.read()
     data = json.loads(data)
 
-    with open("database_files/inhouse.csv", "wb+") as filehandle:
+    with open(csv_export_path, "w") as filehandle:
         f = csv.writer(filehandle)
 
         # Write CSV Header, If you dont need that, remove this line
         columns = data[0].keys()
         f.writerow(columns)
-
+        
         for datum in data:
-            f.writerow([datum[o].replace('\n', '').replace(',', '') for o in columns])
+            f.writerow([str(datum[o]).replace("\n", "").replace(",", "").replace('\r', '') for o in columns])
+
                     
 
 

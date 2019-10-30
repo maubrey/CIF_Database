@@ -6,15 +6,16 @@ from ccdc.search import TextNumericSearch, ReducedCellSearch
 import os, sys, hashlib, re, json
 #######
 config_file_path = './config.json'
-json_database_path = '../database_files/inhouse.json'
-csdsql_database_path = '../database_files/inhouse.csdsql'
-json_search_results_path = '../database_files/search_results.json'
 #######
 
 with open(config_file_path, 'r') as filehandle:
     data = filehandle.read()
-DATABASE_PATH =  json.loads(data)['database']
-
+data = json.loads(data)
+DATABASE_PATH =  data['cif_repository']
+json_database_path = data['json_database_path']
+csdsql_database_path = data['csdsql_database_path']
+json_search_results_path = data['json_search_results_path']
+csv_export_path = data['csv_export_path']
 
 def get_csd_entries_by_author(author):
     '''

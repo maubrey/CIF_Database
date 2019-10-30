@@ -1,3 +1,9 @@
-{"database": "/Volumes/HK_Data/CIF_Database/",
-    "python_path/bin/activate": "//Applications/CCDC/Python_API_2019/miniconda/bin/activate",
-    "comment":"No Backslashes in file path. Only /."}
+{"cif_repository": "/Volumes/HK_Data/CIF_Database/",
+"python_path/bin/activate": "//Applications/CCDC/Python_API_2019/miniconda/bin/activate",
+"comment":"No Backslashes in file path. Only /.",
+
+"json_database_path": "../database_files/inhouse.json",
+"csdsql_database_path": "../database_files/inhouse.csdsql",
+"json_search_results_path": "../database_files/search_results.json",
+"csv_export_path": "../database_files/inhouse.csv"
+}
