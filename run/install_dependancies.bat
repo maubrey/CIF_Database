@@ -1,4 +1,4 @@
-ECHO ON
+ECHO OFF
 
 REM A batch script to install dependancies needed to view the database 
 
@@ -9,10 +9,14 @@ SET PATH=%PATH%;%PYTHON_PATH%
 ECHO %PYTHON_PATH%
 python setup.py PYTHON_ACTIVATE > Output 
 SET /p Python_Act=<Output
-call %Python_Act%
+call :testargs "%Python_Act%"
 ECHO %Python_Act%
 
 
 pip install dash==1.4.1
 pip install pandas
 PAUSE
+
+:testargs
+call %~s1
+goto :eof

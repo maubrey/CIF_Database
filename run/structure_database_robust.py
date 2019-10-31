@@ -192,11 +192,13 @@ def json_2_csv(json_file_path=json_database_path):
 
 def update_databases():
     cifs = get_all_cifs()
-    parsed = parse_cifs(cifs)
-    parsed_cifs_2_json(cleanup_parsed_cifs(parsed))
+    if len(cifs) > 0:
+        parsed = parse_cifs(cifs)
+        parsed_cifs_2_json(cleanup_parsed_cifs(parsed))
 
-    #convert json to csv
-    json_2_csv()
+        #convert json to csv
+        json_2_csv()
+    else: print "No .cifs files found."
 
 
 def hash_file(path):

@@ -2,7 +2,7 @@ import sys, json, os
 
 with open('./config.json', 'r') as filehandle:
     data = filehandle.read()
-data = json.loads(data.replace('\\', '\\\\'))
+data = json.loads(data.replace('\\', '/'))
 PYTHON_ACTIVATE = data['python_path/bin/activate']
 
 if sys.platform not in ['win32', 'cygwin']:

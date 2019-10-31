@@ -213,13 +213,15 @@ def parsed_cifs_2_json(parsed_cifs, filename=json_database_path):
 
 def update_databases():
     cifs = get_all_cifs()
-    parsed = parse_cifs(cifs)
-    parsed_cifs_2_json(cleanup_parsed_cifs(parsed))
-    entries = []
-    for i in cifs:
-        entries.append(cif_2_entry(i))
-    entries_2_database(entries)
-    
+    if len(cifs) > 0:
+        parsed = parse_cifs(cifs)
+        parsed_cifs_2_json(cleanup_parsed_cifs(parsed))
+        entries = []
+        for i in cifs:
+            entries.append(cif_2_entry(i))
+        entries_2_database(entries)
+    else: print "No .cif files found"
+        
 
 def cif_2_entry(filepath): 
     '''
