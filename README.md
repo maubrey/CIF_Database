@@ -1,4 +1,4 @@
-# Karunadasa Group Structure Database and Reduced Cell Search
+# Group Structure Database and Reduced Cell Search
 
 This directory stores all of our published and unpublished .cif files in varying states of completeness. Hopefully with everything in one place (even the really bad structures) we will have an exhaustive list of every structure we have in a searchable format. 
 
@@ -11,46 +11,55 @@ This program can effectively to all of these except *notebook number* which is h
 1. Download the 2019 version of the CSD. It may work with newer versions but CCDC has a habit of breaking things. 
 
 ### Windows
-1. install the CSD python API 
-2. open  `install_dependancies.bat` in text editor and confirm the files paths to where CSD python API  is installed. If step 3 doesn't work then these paths are probably wrong
-3. run `install_dependancies.bat` as **administrator**
-4. this batch file will install the necessary python modules in the CSD miniconda environment
+Pre-requisites: **Python 2.7** and Installation of the CCDC Python API (2019)
 
+#### Get the files
+1. download the cif_database repository from github
+2. extract the files and put them in the folder of your choice
+3. In the same folder as the `run` folder, add the `database_files/` folder from the `CIF_Database/Supporting` directory on the group drive
 
+#### update file paths
+
+1. Open `run/config.json` in a text editor and update the file paths for `python_path/bin/activate` to the location of `CCDC/Python_API_2019/miniconda/bin/activate` which is likely in your `Program Files (x86)` directory. 
+2. Also, update the path for the `cif_repository`  in `run/config.json` to the wherever the group drive is mounted on your computer.
+3. open and run `install_dependencies.bat`. This will pip install the necessary python modules in the CSD miniconda environment (dash and pandas). 
 
 ### Installation on MacOS/Linux
-1. In the terminal `source <absolute path to the ccdc python api>/miniconda/bin/activate`. For example `/Applications/CCDC/Python_API_2019/miniconda/bin/activate`
-2. `pip install dash==1.4.1`
-3. `pip install pandas`
-4.  Run app.py
-5. Confirm the path to`/Applications/CCDC/Python_API_2019/miniconda/bin/activate` in run.sh is correct
+Pre-requisites: **Python 2.7** and Installation of the CCDC Python API
+
+#### Get the files 
+1. download the cif_database repository from github
+2. extract the files and put them in the folder of your choice
+3. In the same folder as the `run` folder, add the `database_files/` folder from the `CIF_Database/Supporting` directory on the group drive
+
+#### update file paths
+1. Confirm the path to`/Applications/CCDC/Python_API_2019/miniconda/bin/activate` and the *group database* are correct in `run/config.json`.
+2. In the terminal run `bash install_dependencies.sh` 
+
 
 ## Running the program
 
 ###  Windows
 
 1. open `run.bat`
-2. if it doesn't work make sure the file paths here are the same as in install_dependancies.bat
+2. if it doesn't work make sure the file paths here are the same as in install_dependencies.bat
+3. Once it is loaded go to the IP address in any web browser
 
-### Linux
+### Linux and MacOS
 
 #### From the shell script
 
-1. In the terminal, go to this folder. 
-2. `chmod a+x run.sh`
-3. you can now just double click the icond to run. 
-4. Alternatively,  on MacOs,  you have have the script run via an Automator quick action (optional).
+1. In the terminal, go to this folder/run/. 
+2. run `chmod a+x run.sh`
+3. double click the `run.sh` icon in Finder to run. 
 
-#### Start from terminal
+#### Start from a bash Terminal
 1. In the terminal `source <absolute path to the ccdc python api>/miniconda/bin/activate`
 2. Run ` python app.py` in terminal to start the webserver and go to the local IP address it tells you to in the browser
 
-
-## Minimal Build
-
-The script `structure_database_robust.py` will build a database of the lab's cif files without using only the Python 2.7 standard libaray. These can be quickly run using the `run_minimal.` bat and sh files or by running the python script as main. 
+## Minimal Functionality
+The script `structure_database_robust.py` will build a database of the lab's cif files using only the Python 2.7 standard library and also export the data to a csv. These can be quickly run using the `run_minimal.bat`  and `run_minimal.sh` files or by running the python script on its own. This is really just in case the Plo
 
 ## If the location of the database moves
-
 Open `config.json` and change the path to whatever your path to the HKDATA database is. 
 
