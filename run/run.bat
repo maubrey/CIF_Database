@@ -11,7 +11,11 @@ SET PATH=%PATH%;%PYTHON_PATH%
 ECHO %PYTHON_PATH%
 python setup.py PYTHON_ACTIVATE > Output 
 SET /p Python_Act=<Output
-call %Python_Act%
+call :testargs "%Python_Act%"
 ECHO %Python_Act%
 python app.py
 PAUSE
+
+:testargs
+call %~s1
+goto :eof
