@@ -13,8 +13,8 @@ call :testargs "%Python_Act%"
 ECHO %Python_Act%
 
 
-pip install dash==1.4.1
-pip install pandas
+pip install dash==1.4.1 --user 
+pip install pandas --user
 PAUSE
 
 :testargs

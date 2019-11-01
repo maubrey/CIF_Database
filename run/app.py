@@ -83,19 +83,12 @@ app.layout = html.Div(style={'backgroundColor':colors['background'], }, children
                 'color': colors['text']
             }),
 
-    html.Div(children='''All solved structures, published and unpublished''',
+    html.Div(children='''All crystal structures, published and unpublished''',
             style={
                 'textAlign':'center',
                 'color': colors['text']
             }),
-    dcc.Markdown(children='''
-    ## Instructions
-    1. The multiselect box has most useful properties from the cif files. The CSD populates certain properties that Olex does not and visa versa. If something is missing search the list of properties for something similar
-    2. Every row was generated from a cif file. If there are multiple entries that look similar check the `hash` property to confirm. If they are not identical then they are unique and you may want to take a closer look at both
-    3. If you need to get a cif file, its filepath can be found in the `path` property
-    4. you can search and filter using the [syntax shown here](https://dash.plot.ly/datatable/filtering). 
     
-    '''),
 
 
     dcc.Markdown(style={'paddingTop': 4},children='''
@@ -233,12 +226,23 @@ app.layout = html.Div(style={'backgroundColor':colors['background'], }, children
 
                     
                     '''),
-        html.Button('Update cif Database', id='button')]),
+
+
+        dcc.Markdown(children='''
+                    ### Instructions
+                    1. The multiselect box has most useful properties from the cif files. The CSD populates certain properties that Olex does not and visa versa. If something is missing search the list of properties for something similar
+                    2. Every row was generated from a cif file. If there are multiple entries that look similar check the `hash` property to confirm. If they are not identical then they are unique and you may want to take a closer look at both
+                    3. If you need to get a cif file, its filepath can be found in the `path` property
+                    4. you can search and filter using the [syntax shown here](https://dash.plot.ly/datatable/filtering). 
+                    <br>
+                    '''),            
+        html.Button('Update', id='button', n_clicks_timestamp=0),
+        html.Button('Rebuild', id='rebuild_button', n_clicks_timestamp=0)]),
 
     html.Div(id='output-container-button',
              children='Enter a value and press submit'),
 
-    dcc.Dropdown(id='column-selected',multi=True, value=['parent', '_symmetry_space_group_name_H-M', '_cell_length_a', '_cell_length_b', '_cell_length_c'],
+    dcc.Dropdown(id='column-selected',multi=True, value=['parent', '_symmetry_space_group_name_H-M', '_symmetry_cell_setting', '_cell_length_a', '_cell_length_b', '_cell_length_c', '_cell_angle_alpha', '_cell_angle_beta', '_cell_angle_gamma'],
                         options=[{"label": i[0], 'value': i[1]} for i in [[common_names[j], j] if j in common_names.keys() else [j,j] for j in df.columns]],
                         style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "100%", "padding": 0, 'height':'auto'}, className="row", ),
 
@@ -267,31 +271,49 @@ app.layout = html.Div(style={'backgroundColor':colors['background'], }, children
     
 ])
 
-    
+####################
+##### Callbacks #####    
+####################
 
 @app.callback(
     Output('output-container-button', 'children'),
-    [Input('button', 'n_clicks')])
-def update_output(n_clicks):
-    if n_clicks is None:
+    [Input('button', 'n_clicks_timestamp'), 
+    Input('rebuild_button', 'n_clicks_timestamp')])
+def update_output(button, rebuild_button):
+    if button == 0 and rebuild_button == 0:
         raise PreventUpdate
     else:
+        if button > rebuild_button:
+            before = structure_database.hash_file(json_database_path)
+            structure_database.update_databases()
+            after = structure_database.hash_file(json_database_path)
+            if before == after: 
+                return 'No changes made.'
+            else:
+                with open(json_database_path, 'r') as filehandle:
+                    data = filehandle.read()
+                data = json.loads(data)
+                
+                df = json_normalize(data)
+                return 'Database Updated.'
+        elif rebuild_button > button:
+            before = structure_database.hash_file(json_database_path)
+            structure_database.update_databases(rebuild=True)
+            after = structure_database.hash_file(json_database_path)
+            if before == after: 
+                return 'No changes made.'
+            else:
+                with open(json_database_path, 'r') as filehandle:
+                    data = filehandle.read()
+                data = json.loads(data)
+                
+                df = json_normalize(data)
+            return "Database Rebuilt."
 
-        # cifs = structure_database.get_all_cifs()
-        # data = structure_database.parse_cifs(cifs)
-        # clean_data = structure_database.cleanup_parsed_cifs(data)
-        before = structure_database.hash_file(json_database_path)
-        structure_database.update_databases()
-        after = structure_database.hash_file(json_database_path)
-        if before == after: 
-            return 'No changes made.'
-        else:
-            with open(json_database_path, 'r') as filehandle:
-                data = filehandle.read()
-            data = json.loads(data)
-            
-            df = json_normalize(data)
-            return 'Updated {} times! Add a column to update the table.'.format(n_clicks)
+
+
+
+
 
 
 @app.callback(

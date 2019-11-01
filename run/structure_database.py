@@ -27,12 +27,12 @@ def get_csd_entries_by_author(author):
     query.add_author(author)
     return [h.identifier for h in query.search()]
 
-def get_entry(identifier):
+def get_entry(identifier, database='CSD'):
     '''
     input an identifier as a string and get the
     ccdc.entry.Entry object
     '''
-    csd_reader = EntryReader('CSD')
+    csd_reader = EntryReader(database)
     entry = csd_reader.entry(identifier)
     return entry
 
@@ -80,7 +80,8 @@ def get_all_cifs(dirpath=DATABASE_PATH):
         for name in files:
             if name.endswith('.cif'):
                 relative_path =  os.path.join(root, name)
-                cif_paths.append(relative_path)
+                if '.olex' not in root:
+                    cif_paths.append(relative_path)
     return cif_paths
 
 def parse_cifs(list_of_paths):
@@ -154,6 +155,7 @@ def parse_cifs(list_of_paths):
             '_space_group_crystal_system':r'(_space_group_crystal_system)\s*([^_]*)\n(?<!p)[l_]' ,
         }
     parsed = [] #init the output list
+
     for path in list_of_paths:  #get the data as text and its hash
         path = path.replace('\\', '/')
         entry = dict()
@@ -162,7 +164,6 @@ def parse_cifs(list_of_paths):
 
         filename_pattern = re.compile(DATABASE_PATH + r'/([^/]*)')
         entry['parent'] = filename_pattern.search(path).group(1)
-        print entry['parent']
        #build regex and find first entry for every thing
        #should be robust logic to handle all search terms
         with open(path, 'rt') as filehandle:
@@ -177,6 +178,7 @@ def parse_cifs(list_of_paths):
                     entry[item] = pattern.search(data).group(2)
             except: entry[item] = ''
         parsed.append(entry)
+    print '\n'
     return parsed
 
 def cleanup_parsed_cifs(cif_dict):
@@ -198,6 +200,11 @@ def cleanup_parsed_cifs(cif_dict):
         if cif['_symmetry_cell_setting'] == "":
             cif['_symmetry_cell_setting'] = cif['_space_group_crystal_system'].replace('\'', '')
         
+        if cif['_symmetry_cell_setting'].strip() in ['?', '', ' '] or cif['_symmetry_space_group_name_H-M'].strip() in ['?', '', ' ']:
+            this_entry = get_entry(cif['hash'], database=csdsql_database_path)
+            cif['_symmetry_cell_setting'] = str(this_entry.crystal.crystal_system)
+            cif['_symmetry_space_group_name_H-M'] = str(this_entry.crystal.spacegroup_symbol)
+            
         out.append(cif)
     return out
 
@@ -211,16 +218,27 @@ def parsed_cifs_2_json(parsed_cifs, filename=json_database_path):
         writer.write(parsed_cifs)
     return parsed_cifs
 
-def update_databases():
+def update_databases(json_file = json_database_path, rebuild=False):
     cifs = get_all_cifs()
+
+    if rebuild == False:
+        with open(json_file, 'r') as filehandle:
+            json_data = filehandle.read()
+        json_data = [i['path'] for i in json.loads(json_data)]
+        cifs = [x for x in cifs if x not in json_data]
+
     if len(cifs) > 0:
-        parsed = parse_cifs(cifs)
-        parsed_cifs_2_json(cleanup_parsed_cifs(parsed))
         entries = []
         for i in cifs:
             entries.append(cif_2_entry(i))
-        entries_2_database(entries)
-    else: print "No .cif files found"
+        
+        entries_2_database(entries)        
+        
+        parsed = parse_cifs(cifs)
+        parsed_cifs_2_json(cleanup_parsed_cifs(parsed))
+        
+
+    else: print "No new .cif files found"
         
 
 def cif_2_entry(filepath): 
@@ -246,12 +264,15 @@ def entries_2_database(entry_list, output_file=csdsql_database_path): #broken
     '''
 
     with EntryWriter(output_file) as filehandle:
+        count = 0
         for entry in entry_list:
+            count += 1
             try: filehandle.write(entry)
             except RuntimeError as e: 
                 print str(e)
-                if str(e).startswith('CSDSQLDatabase::append():'): print 'dulplicate file found'
+                
                 continue
+
     return 'csdsql file updated.'
         
 
