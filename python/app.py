@@ -19,6 +19,25 @@ from dash.exceptions import PreventUpdate
 config_file_path = "./config.json"
 #######
 
+#####   SPECK   #####
+import dash_bio as dashbio
+
+with open("../database_files/temp.xyz", "r") as filehandle:
+    xyz_data = filehandle.readlines()
+xyz_cols = [i.split("\t") for i in xyz_data][2:]
+my_speck_data = dict(
+    symbol=[str(i[0]) for i in xyz_cols],
+    x=[float(i[1]) for i in xyz_cols],
+    y=[float(i[2]) for i in xyz_cols],
+    z=[float(i[3]) for i in xyz_cols],
+)
+# my_speck_data = [dict{symbol='C', x=0.1, y=0.1, z=0.1},
+#                 dict{symbol='C', x=0.2, y=0.1, z=0.1}]
+
+# print(my_speck_data)
+
+# from dash_bio_utils import xyz_reader
+#####   SPARK   #####
 
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 app = Dash(__name__, external_stylesheets=external_stylesheets)
@@ -267,12 +286,49 @@ app.layout = html.Div(
             export_format="csv",
             fill_width=False,
         ),
+        dcc.Markdown(children="""# Structures"""),
+        html.Div(
+            id="structure_images",
+            children=[html.Img(id="image", src="../database_files/temp.png")],
+        ),
     ],
 )
 
 ####################
 ##### Callbacks #####
 ####################
+@app.callback(
+    # [
+    Output("structure_images", "children"),
+    # Output('image', 'src'),
+    [
+        Input("datatable-interactivity", "derived_virtual_row_ids"),
+        Input("datatable-interactivity", "selected_row_ids"),
+    ],
+)
+def get_image(derived_virtual_row_ids, selected_row_ids):
+
+    selected_id_set = set(selected_row_ids or [])
+    if derived_virtual_row_ids is None:
+        dff = df
+        # pandas Series works enough like a list for this to be OK
+        derived_virtual_row_ids = df["id"]
+        return "No Selection"
+    else:
+        dff = df.loc[derived_virtual_row_ids]
+
+        # dff = df if derived_virtual_data is None else pandas.DataFrame(derived_virtual_data)
+        if selected_row_ids is not None:
+            image_path = structure_database.get_diagram(selected_row_ids[0])
+            print("current image_path = {}".format(image_path))
+            encoded_image = base64.b64encode(open(image_path, "rb").read())
+
+            return [
+                html.Div("Row #: " + selected_row_ids[0]),
+                html.Img(src="data:image/png;base64,{}".format(encoded_image.decode())),
+            ]
+        else:
+            return "No Selection"
 
 
 @app.callback(
@@ -315,45 +371,25 @@ def update_output(button, rebuild_button):
 
 
 @app.callback(
-    [
-        Output("datatable-interactivity", "data"),
-        Output("datatable-interactivity", "columns"),
-    ],
+    # Output("datatable-interactivity", "data"),
+    Output("datatable-interactivity", "columns"),
     [Input("column-selected", "value"), Input("button", "n_clicks")],
 )
 def update_graph(column, n_clicks):
     value_header = (
         []
     )  # ['parent', '_symmetry_space_group_name_H-M', '_symmetry_cell_setting']
-    value_cell = [df[i] for i in value_header]
     for col in column:
         value_header.append(col)
-        value_cell.append(df[col])
-    if n_clicks is None:
-        raise PreventUpdate
-    elif n_clicks >= 1:
-        with open(json_database_path, "r") as filehandle:
-            data = filehandle.read()
-        data = json.loads(data)
-        df_new = json_normalize(data)[value_header]
-        columns_out = [
-            {"name": i[0], "id": i[1], "deletable": True, "selectable": False}
-            for i in [
-                [common_names[j], j] if j in common_names.keys() else [j, j]
-                for j in df_new.columns
-            ]
+
+    columns_out = [
+        {"name": i[0], "id": i[1], "deletable": True, "selectable": False}
+        for i in [
+            [common_names[j], j] if j in common_names.keys() else [j, j]
+            for j in value_header
         ]
-        return df_new.to_dict("records"), columns_out
-    else:
-        df_out = df[value_header]
-        columns_out = [
-            {"name": i[0], "id": i[1], "deletable": True, "selectable": False}
-            for i in [
-                [common_names[j], j] if j in common_names.keys() else [j, j]
-                for j in df_out.columns
-            ]
-        ]
-        return df_out.to_dict("records"), columns_out
+    ]
+    return columns_out  # df_out.to_dict('records'), (GOES in Front)
 
 
 @app.callback(
