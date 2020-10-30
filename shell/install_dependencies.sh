@@ -3,7 +3,7 @@
 
 BASEDIR=$(dirname "$0")
 cd "$BASEDIR"
-source $(python setup.py "PYTHON_PATH")
+source $(python ../python/setup.py "PYTHON_PATH")
 which python
 
 pip install dash==1.4.1

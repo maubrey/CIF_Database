@@ -1,5 +1,5 @@
 {"cif_repository": "/Users/michael/mnt/hk_data/CIF_Database",
-"python_path/bin/activate": "//Applications/CCDC/Python_API_2019/miniconda/bin/activate",
+"python_path/bin/activate": "/Applications/CCDC/Python_API_2020/miniconda/bin/activate",
 
 "json_database_path": "../database_files/inhouse.json",
 "csdsql_database_path": "../database_files/inhouse.csdsql",
