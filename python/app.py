@@ -13,6 +13,7 @@ from pandas import json_normalize
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 from dash.exceptions import PreventUpdate
+import base64
 
 
 #######
@@ -60,6 +61,9 @@ with open(json_database_path, "r") as filehandle:
     data = filehandle.read()
 data = json.loads(data)
 df = json_normalize(data)
+# the lines below alow to select by unique id in this case the file path
+df["id"] = df["hash"]
+df.set_index("id", inplace=True, drop=False)
 
 with open(json_search_results_path, "r") as filehandle:
     data2 = filehandle.read()
@@ -230,12 +234,14 @@ app.layout = html.Div(
             ],
         ),
         html.Div(
-            id="output-container-button", children="Enter a value and press submit"
+            id="output-container-button",
+            children="%d structures on file." % (len(df["parent"])),
         ),
         dcc.Dropdown(
             id="column-selected",
             multi=True,
             value=[
+                "id",
                 "parent",
                 "_symmetry_space_group_name_H-M",
                 "_symmetry_cell_setting",
@@ -267,22 +273,25 @@ app.layout = html.Div(
         DataTable(
             id="datatable-interactivity",
             columns=[
-                {"name": i, "id": i, "deletable": True, "selectable": False}
+                {"name": i, "id": i, "deletable": False, "selectable": False}
                 for i in df.columns
+                if i != "id"
             ],
             data=df.to_dict("records"),
+            # derived_virtual_data=df.to_dict("records"),
             editable=False,
             filter_action="native",
             sort_action="native",
             sort_mode="multi",
             column_selectable="single",
-            # row_selectable="multi",
+            row_selectable="single",
             row_deletable=False,
+            hidden_columns=["id"],
             selected_columns=[],
-            selected_rows=[],
+            selected_rows=[0],
             page_action="native",
             page_current=0,
-            page_size=100,
+            page_size=15,
             export_format="csv",
             fill_width=False,
         ),
@@ -293,6 +302,7 @@ app.layout = html.Div(
         ),
     ],
 )
+
 
 ####################
 ##### Callbacks #####
@@ -317,14 +327,23 @@ def get_image(derived_virtual_row_ids, selected_row_ids):
     else:
         dff = df.loc[derived_virtual_row_ids]
 
-        # dff = df if derived_virtual_data is None else pandas.DataFrame(derived_virtual_data)
+        # dff = (
+        #     df
+        #     if derived_virtual_data is None
+        #     else pandas.DataFrame(derived_virtual_data)
+        # )
         if selected_row_ids is not None:
             image_path = structure_database.get_diagram(selected_row_ids[0])
             print("current image_path = {}".format(image_path))
             encoded_image = base64.b64encode(open(image_path, "rb").read())
 
             return [
-                html.Div("Row #: " + selected_row_ids[0]),
+                html.Div(
+                    "Formula: "
+                    + df.loc[df["hash"] == selected_row_ids[0]][
+                        "_chemical_formula_moiety"
+                    ]
+                ),
                 html.Img(src="data:image/png;base64,{}".format(encoded_image.decode())),
             ]
         else:
@@ -347,27 +366,33 @@ def update_output(button, rebuild_button):
             structure_database.update_databases()
             after = structure_database.hash_file(json_database_path)
             if before == after:
-                return "No changes made."
+                return "No changes made.\n %d structures on file." % (len(df["parent"]))
             else:
                 with open(json_database_path, "r") as filehandle:
                     data = filehandle.read()
                 data = json.loads(data)
 
                 df = json_normalize(data)
-                return "Database Updated."
+                df["id"] = df["hash"]
+                df.set_index("id", inplace=True, drop=False)
+                return "Database Updated.\n %d structures on file." % (
+                    len(df["parent"])
+                )
         elif rebuild_button > button:
             before = structure_database.hash_file(json_database_path)
             structure_database.update_databases(rebuild=True)
             after = structure_database.hash_file(json_database_path)
             if before == after:
-                return "No changes made."
+                return "No changes made.\n %d structures on file." % (len(df["parent"]))
             else:
                 with open(json_database_path, "r") as filehandle:
                     data = filehandle.read()
                 data = json.loads(data)
-
                 df = json_normalize(data)
-            return "Database Rebuilt."
+                df["id"] = df["hash"]
+                df.set_index("id", inplace=True, drop=False)
+
+            return "Database Rebuilt.\n %d structures on file." % (len(df["parent"]))
 
 
 @app.callback(
@@ -444,9 +469,6 @@ def update_reduced_cell(
             "hash",
             "path",
         ]
-        # try:
-        #     value_cell = [reduced_cell_df[i] for i in value_header]
-        # except: [reduced_cell_df[i] for i in []]
 
         with open(json_search_results_path, "r") as filehandle:
             data2 = filehandle.read()
@@ -464,4 +486,4 @@ def update_reduced_cell(
 
 
 if __name__ == "__main__":
-    app.run_server(debug=False)
+    app.run_server(debug=True)

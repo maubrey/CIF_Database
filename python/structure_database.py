@@ -3,6 +3,9 @@ from ccdc.io import EntryReader, EntryWriter
 from ccdc.entry import Entry
 from ccdc.crystal import CellAngles, CellLengths
 from ccdc.search import TextNumericSearch, ReducedCellSearch
+from ccdc.diagram import DiagramGenerator
+
+
 import os, sys, hashlib, re, json
 
 #######
@@ -353,6 +356,19 @@ def my_reduced_cell_search(
     parsed_cifs_2_json(search_results, filename="../database_files/search_results.json")
 
     print(str(len(hits)) + " hits found.")
+
+
+def get_diagram(entry_id, db=csdsql_database_path):
+    my_entry = get_entry(entry_id, database=db)
+    mol = my_entry.molecule
+    mol.assign_bond_types()
+    diagram_generator = DiagramGenerator()
+    diagram_generator.settings.font_size = 12
+    diagram_generator.settings.line_width = 1.6
+    diagram_generator.settings.image_width = 500
+    diagram_generator.settings.image_height = 500
+    img = diagram_generator.image(mol).save("../database_files/temp.png")
+    return "../database_files/temp.png"
 
 
 if __name__ == "__main__":
